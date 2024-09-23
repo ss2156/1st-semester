@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Compression with PCA</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        flex-direction: column;
+      }
+      .container {
+        text-align: center;
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+      }
+      .file-upload {
+        margin: 20px 0;
+      }
+      .submit-btn {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .submit-btn:hover {
+        background-color: #0056b3;
+      }
+      #results {
+        margin-top: 20px;
+        text-align: left;
+      }
+      #download-btn {
+        margin-top: 20px;
+        display: none;
+        background-color: green;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Image Compression Using PCA</h1>
+      <form id="upload-form">
+        <div class="file-upload">
+          <label for="image">Upload an image:</label>
+          <input
+            type="file"
+            name="image"
+            id="image"
+            accept="image/*"
+            required
+          />
+        </div>
+        <button type="submit" class="submit-btn">Compress Image</button>
+      </form>
+
+      <div id="results" style="display: none">
+        <h3>Compression Results:</h3>
+        <img
+          id="compressed-img"
+          style="max-width: 50%"
+          alt="Compressed Image"
+        />
+        <p id="psnr"></p>
+        <p id="size-info"></p>
+        <a id="download-btn" href="" download style="text-decoration: none"
+          >Download Compressed Image</a
+        >
+      </div>
+    </div>
+
+    <script>
+      document
+        .querySelector("form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          let formData = new FormData(this);
+          fetch("/compress", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.error) {
+                alert(data.error);
+                return;
+              }
+
+              // Ensure these values exist and are not undefined
+              let psnr_r = data.psnr_r || 0;
+              let psnr_g = data.psnr_g || 0;
+              let psnr_b = data.psnr_b || 0;
+              let original_size = data.original_size || 0;
+              let compressed_size = data.compressed_size || 0;
+
+              document.getElementById(
+                "psnr_r"
+              ).textContent = `PSNR for Red channel: ${psnr_r.toFixed(2)} dB`;
+              document.getElementById(
+                "psnr_g"
+              ).textContent = `PSNR for Green channel: ${psnr_g.toFixed(2)} dB`;
+              document.getElementById(
+                "psnr_b"
+              ).textContent = `PSNR for Blue channel: ${psnr_b.toFixed(2)} dB`;
+              document.getElementById(
+                "original_size"
+              ).textContent = `Original image size: ${original_size} bytes`;
+              document.getElementById(
+                "compressed_size"
+              ).textContent = `Compressed image size: ${compressed_size} bytes`;
+
+              let img = document.createElement("img");
+              img.src = data.image_url;
+              img.id = "compressed_image";
+              document.getElementById("image_container").appendChild(img);
+
+              let downloadBtn = document.getElementById("download_button");
+              downloadBtn.style.display = "block";
+            })
+            .catch((error) => console.error("Error:", error));
+        });
+    </script>
+  </body>
+</html>
